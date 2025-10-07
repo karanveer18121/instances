@@ -6,8 +6,8 @@ data "terraform_remote_state" "network_details" {
     region = var.region
   }
 }
-
-resource "aws_instance" "my_vm" {
+module "webserver" {
+source = "./modules/linux_node"
   ami           = "ami-02d26659fd82cf299"
   subnet_id     = data.terraform_remote_state.network_details.outputs.my_subnet
   key_name      = data.terraform_remote_state.network_details.outputs.key_name
@@ -18,4 +18,3 @@ resource "aws_instance" "my_vm" {
     Name = "student.18-vm1"
   }
 }
-
