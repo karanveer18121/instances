@@ -28,7 +28,8 @@ resource "local_file" "tf_ansible_inventory" {
 ${vm.private_dns} ansible_host=${vm.public_ip} ansible_ssh_user=ubuntu
 %{ endfor ~}
 EOT
-  filename = "${path.root}/ansible-playbooks/tf_ansible_${var.install_package}_inventory.ini"
+  filename = "./tf_ansible_${var.install_package}_inventory.ini"
+
 }
 resource "time_sleep" "wait_30_seconds" {
   depends_on = [aws_instance.my_vm]
@@ -38,8 +39,14 @@ resource "time_sleep" "wait_30_seconds" {
 resource "null_resource" "install_package" {
   count = length(aws_instance.my_vm) > 0 ? 1 : 0
   depends_on = [time_sleep.wait_30_seconds]
+
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i ${path.root}/ansible-playbooks/tf_ansible_${var.install_package}_inventory.ini ${path.root}/ansible-playbooks/${var.playbook_name} --private-key '${path.root}/keys/student.18-vm-key'"
+    command = <<EOT
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu \
+-i ./tf_ansible_${var.install_package}_inventory.ini \
+../ansible-playbooks/${var.playbook_name} \
+--private-key=/home/ubuntu/terraform_base/keys/student.18-vm-key
+EOT
   }
 }
 
