@@ -15,7 +15,7 @@ data "terraform_remote_state" "network_details" {
 # ----------------------------
 module "webserver" {
   source = "./modules/linux_node"
-  instance_count = 2
+  instance_count = 1
   ami = "ami-02d26659fd82cf299"
   subnet_id = data.terraform_remote_state.network_details.outputs.my_subnet
   key_name = data.terraform_remote_state.network_details.outputs.key_name
@@ -46,7 +46,7 @@ module "loadbalancer" {
     Name = var.loadbalancer_prefix
   }
 
-  install_package = "install_package"
+  install_package = "load_balancer"
   playbook_name   = "install-ha-proxy.yaml"
 
   depends_on = [module.webserver]
@@ -57,7 +57,7 @@ module "loadbalancer" {
 # ----------------------------
 module "web_docker_host" {
   source = "./modules/linux_node"
-  instance_count = 1
+  instance_count = 0
   ami = "ami-02d26659fd82cf299"       # Given AMI for Docker host
   instance_type = "t3.micro"
   key_name = data.terraform_remote_state.network_details.outputs.key_name
