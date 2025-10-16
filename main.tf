@@ -53,12 +53,12 @@ module "loadbalancer" {
 }
 
 # ----------------------------
-# Docker Host Module (NEW for Lab 12)
+# Docker Host Module
 # ----------------------------
 module "web_docker_host" {
   source = "./modules/linux_node"
-  instance_count = 1
-  ami = "ami-02d26659fd82cf299"       # Given AMI for Docker host
+  instance_count = 3
+  ami = "ami-02d26659fd82cf299"
   instance_type = "t3.micro"
   key_name = data.terraform_remote_state.network_details.outputs.key_name
   subnet_id = data.terraform_remote_state.network_details.outputs.my_subnet
@@ -72,3 +72,21 @@ module "web_docker_host" {
   playbook_name   = "install-docker.yaml"
 }
 
+module "lb_docker_host" {
+  source = "./modules/linux_node"
+  instance_count = 1
+  ami = "ami-02d26659fd82cf299"
+  instance_type = "t3.micro"
+  key_name = data.terraform_remote_state.network_details.outputs.key_name
+  subnet_id = data.terraform_remote_state.network_details.outputs.my_subnet
+  vpc_security_group_ids = data.terraform_remote_state.network_details.outputs.security_group_id_array
+
+  tags = {
+    Name = var.lb_docker_host_prefix
+  }
+
+  install_package = "loadbalancer_docker"
+  playbook_name   = "install-lb-docker-host.yaml"
+
+  depends_on = [module.web_docker_host]
+}
