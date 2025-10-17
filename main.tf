@@ -57,7 +57,7 @@ module "loadbalancer" {
 # ----------------------------
 module "web_docker_host" {
   source = "./modules/linux_node"
-  instance_count = 3
+  instance_count = 0
   ami = "ami-02d26659fd82cf299"
   instance_type = "t3.micro"
   key_name = data.terraform_remote_state.network_details.outputs.key_name
@@ -74,7 +74,7 @@ module "web_docker_host" {
 
 module "lb_docker_host" {
   source = "./modules/linux_node"
-  instance_count = 1
+  instance_count = 0
   ami = "ami-02d26659fd82cf299"
   instance_type = "t3.micro"
   key_name = data.terraform_remote_state.network_details.outputs.key_name
@@ -89,4 +89,20 @@ module "lb_docker_host" {
   playbook_name   = "install-lb-docker-host.yaml"
 
   depends_on = [module.web_docker_host]
+}
+module "jenkins_master" {
+  source = "./modules/linux_node"
+  instance_count = 1
+  ami = "ami-02d26659fd82cf299"
+  instance_type = "t3.micro"
+  key_name = data.terraform_remote_state.network_details.outputs.key_name
+  subnet_id = data.terraform_remote_state.network_details.outputs.my_subnet
+  vpc_security_group_ids = data.terraform_remote_state.network_details.outputs.security_group_id_array
+
+  tags = {
+    Name = var.jenkins_master_prefix
+  }
+
+  install_package = "jenkins"
+  playbook_name   = "install-jenkins-master.yaml"
 }
